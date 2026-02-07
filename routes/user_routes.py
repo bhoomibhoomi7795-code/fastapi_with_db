@@ -7,7 +7,7 @@ from schemas.User_schemas import UserSchema
 router = APIRouter()
 
 @router.post("/signup")
-def signup(User:User,db: Session = Depends(get_db)):
+def signup(User:UserSchema,db: Session = Depends(get_db)):
     user_repo = UserRepo(db)
     user_repo.add_user()
     return {"message": "User signed up successfully"}
