@@ -9,25 +9,14 @@ from utils.jwt_handler import verify_token
 
 router = APIRouter()
 
-def get_current_user(authorization: str = Header(...)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid token format")
-    token = authorization.split(" ")[1]
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    return payload
-
 @router.post("/ask", response_model=AIResponse)
-def ask_ai(request: AIRequest, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def ask_ai(request: AIRequest, db: Session = Depends(get_db)):
     """Get response from AI model and store chat in chat_messages."""
     try:
-        user_id = int(current_user.get("sub"))
         response = get_completion(request.message, request.system_prompt)
         
         # 1. Store User Message
         user_chat_entry = Chat(
-            user_id=user_id,
             role="user",
             content=request.message
         )
@@ -35,7 +24,6 @@ def ask_ai(request: AIRequest, db: Session = Depends(get_db), current_user: dict
         
         # 2. Store Assistant Response
         assistant_chat_entry = Chat(
-            user_id=user_id,
             role="assistant",
             content=response
         )
@@ -49,11 +37,10 @@ def ask_ai(request: AIRequest, db: Session = Depends(get_db), current_user: dict
         raise HTTPException(status_code=500, detail=str(e)) 
 
 @router.get("/chats", response_model=List[ChatResponse])
-def get_chats(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def get_chats(db: Session = Depends(get_db)):
     """Retrieve chat history for current user."""
     try:
-        user_id = int(current_user.get("sub"))
-        chats = db.query(Chat).filter(Chat.user_id == user_id).order_by(Chat.timestamp.desc()).all()
+        chats = db.query(Chat).order_by(Chat.timestamp.desc()).all()
         return chats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
