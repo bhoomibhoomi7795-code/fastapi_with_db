@@ -3,8 +3,8 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 import os
 load_dotenv()
-APP_PASSWORD = os.environ["APP_PASSWORD"]
-SENDER_EMAIL = os.environ["SENDER_EMAIL"]
+app_password = os.environ["APP_PASSWORD"]
+sender_email = os.environ["SENDER_EMAIL"]
 
 # Email details
 def send_email(receiver_email: str, subject: str, content: str) -> None:
@@ -12,7 +12,7 @@ def send_email(receiver_email: str, subject: str, content: str) -> None:
    
 # Create email
     msg = EmailMessage()
-    msg["From"] = SENDER_EMAIL
+    msg["From"] = sender_email
     msg["To"] = receiver_email
     msg["Subject"] = subject
     msg.set_content(content)
@@ -20,7 +20,7 @@ def send_email(receiver_email: str, subject: str, content: str) -> None:
     # Send email
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.starttls()  # secure connection  
-        server.login(SENDER_EMAIL, APP_PASSWORD)
+        server.login(sender_email, app_password)
         server.send_message(msg)
 
     print("Email sent successfully!")
